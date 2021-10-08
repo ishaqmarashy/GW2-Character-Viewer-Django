@@ -75,24 +75,24 @@ def key(request,api_key):
     return render(request,"chars.html",build(request,apikey))   
 def putCharacters(apikey):
     responseJson=listCharacters("",apikey)
-    print("=MongoDB-Putting-into-accounts")
+    print("=MongoDB-Putting-into-Accounts-Context")
     accounts_collection=server['accounts']
     accounts_collection.insert_one({'_id':apikey,'characters':responseJson})
     return responseJson
 def putCharacterEquipment(charName,apikey):
     responseJson=listCharacters(charName,apikey)
-    print("=MongoDB-Putting-into-characters")
+    print("=MongoDB-Putting-Into-Characters-Context")
     characters_collection=server['characters']
     characters_collection.insert_one(Merge({'_id':charName},responseJson))
     return responseJson
 def putItems(id,apikey):
     responseJson=getItem(id,apikey)
-    print("=MongoDB-Putting-into-items")
+    print("=MongoDB-Putting-Into-Items-Context")
     characters_collection=server['items']
     characters_collection.insert_one(Merge({'_id':id},responseJson))
     return responseJson
 def exists(collection,id):
-    print(f"=MongoDB-Pulling-From-[item: {id}]-from-[collection: {collection}]")
+    print(f"=MongoDB-Pulling-From-[Item: {id}]-From-[Conext: {collection}]")
     collection_item=server[collection]
     result=collection_item.find({'_id':id})
     if result.count()==0:

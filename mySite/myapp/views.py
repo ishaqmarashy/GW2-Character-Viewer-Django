@@ -47,15 +47,22 @@ def build(request, apikey):
                 for upgrade in item['upgrades']:
                     upgradeList.append(existsUpgrade(upgrade,apikey))
                 item['upgrades']=upgradeList
-
             except: 
-                item['upgrades']='Non'
+                item['upgrades']={'Non'}
             try:
                 item['stats']
             except:
                 item['stats']={'attributes': "Not Given"}
-                # item['stats']['attributes']='item has no stats'
-            item['id']=existsItems(item['id'],apikey)
+            newItem=existsItems(item['id'],apikey)
+            item['id']=newItem['name']
+            item['icon']=newItem['icon']
+            try:
+                attributesList={}
+                for x in newItem['details']['infix_upgrade']['attributes']:
+                    attributesList[x["attribute"]]=x["modifier"]
+                item['stats']={'attributes':attributesList}
+            except:
+                ""
     return context
 
 def index(request):
@@ -115,11 +122,11 @@ def existsItems(id,apikey):
     itemList=''
     temp=exists('items',id)
     if temp:     
-        itemList=temp[0]['name']
+        itemList=temp[0]
     else:
-        itemList=putItems(id,apikey)['name']
+        itemList=putItems(id,apikey)
     return itemList
-    
+
 def existsUpgrade(id,apikey):
     itemList=''
     temp=exists('items',id)

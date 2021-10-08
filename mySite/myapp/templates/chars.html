@@ -5,9 +5,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
-        <title>Resume - Start Bootstrap Theme</title>
+        <title>GW2: Character Stats</title>
         <link rel="icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico'%}" />
         <!-- Font Awesome icons (free version)-->
         <script src="https://use.fontawesome.com/releases/v5.15.3/js/all.js" crossorigin="anonymous"></script>
@@ -17,7 +15,6 @@
         <!-- Core theme CSS (includes Bootstrap)-->
         <link href="{% static 'css/styles.css'%}" rel="stylesheet" />
     </head>
-         
     <body id="page-top">
         <!-- Navigation-->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top" id="sideNav">
@@ -43,16 +40,40 @@
                         <table class="table">
                                  <thead><tr>
                                  <th scope="col">Item Name</th>
+                                 <th scope="col">Item Icon</th>
                                  <th scope="col">Item Slot</th>
-                                 <th scope="col">item stats</th>
-                                 <th scope="col">item upgrades</th>
+                                 <th scope="col">item Stats</th>
+                                 <th scope="col">item Upgrades</th>
                                  </tr></thead><tbody>
                             {% for item in details.1 %}
                                 <tr>
-                                <td >{{item.id}}</td>
+                                <th>{{item.id}}</th>
+                                <td> <img style="object-fit: fill; border: 3px solid #000;"src="{{item.icon}}"alt="{{item.id}}"></td>
                                 <td>{{item.slot}}</td>
-                                <td>{{item.stats.attributes}}</td>
-                                <td>{{item.upgrades}}</td>
+                                <td>
+                                <table class="table">
+                                    <thead><tr>
+                                     {% for x,y in item.stats.attributes.items %}
+                                        <th scope="col">{{x}}</th>
+                                    {% endfor %}
+                                    </tr></thead><tbody><tr>
+                                    {% for x,y in item.stats.attributes.items %}
+                                         <td style='border:none;'>{{y}} </td>
+                                    {% endfor %}
+                                    </tr>
+                                </tbody></table>
+                                </td>
+                                <td height='100%'>
+                                <table border=''  width='100%'  height='100%'>
+                                {% for x in item.upgrades %}
+                                <tr border=''>
+                                <td border=''>
+                                {{x}}
+                                <td>
+                                </tr> 
+                                {% endfor %}
+                                </table>
+                                </td>
                                 </tr>   
                             {% endfor %}
                         </tbody></table>

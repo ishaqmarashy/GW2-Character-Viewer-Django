@@ -1,12 +1,19 @@
-from django.shortcuts import render
-from django.http import HttpResponse, response
+import json
+from django.shortcuts import redirect, render
 import requests
 from requests import api
 from . import mongodb
-#DC96889C-7090-A445-9806-FBA2D0C8508BC622FA93-8506-41C2-9F56-8FCCC11F35DB 
-#215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B 
+from django import forms
+from django.views.decorators.csrf import csrf_exempt
+#   DC96889C-7090-A445-9806-FBA2D0C8508BC622FA93-8506-41C2-9F56-8FCCC11F35DB 
+#   215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B 
 #just past your own api key into the url after localhost/myapp to start building your mongodb database... it takes a while...
+apikey='215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B'
 server=mongodb.get_database()
+
+class api_keyForm(forms.Form):
+    api_key = forms.CharField(label='api_key', max_length=100)
+
 def Merge(dict1, dict2):
     res = {**dict1, **dict2}
     return res
@@ -15,6 +22,8 @@ def api(arg,apikey):
     url=f'https://api.guildwars2.com/v2/{arg}'
     response=requests.get(url,data={'access_token':apikey})
     print(f"Requesting Data-from-{url}->")
+    if(type(response.json())==dict and response.json()['text']=='Invalid access token'):
+        return render(response)
     return response.json()
 def getItem(arg,apikey):
     if(arg):
@@ -38,7 +47,6 @@ def build(request, apikey):
         equipmentList[character]=(existsEquipment(character,apikey))
     context['characters']=characterlist
     context['equipments']=equipmentList
-    # print(equipmentList)
     for items in context['equipments']:
         context['equipments'][items]=context['equipments'][items][items]
         for item in context['equipments'][items]:
@@ -64,35 +72,43 @@ def build(request, apikey):
             except:
                 ""
     return context
-
+@csrf_exempt
 def index(request):
     #my api key
-    apikey='215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B'
-    return render(request,"chars.html",build(request,apikey))   
+    try:
+        if(request.method=='POST'):
+            if(len(request.POST.get("api_key", ""))>0):
+                return key(request,request.POST.get("api_key", ""))
+            elif(len(request.POST.get("api_key", ""))==0):
+                return render(request,"chars.html",build(request,apikey))  
+    except:
+        return render(request,"index.html")
+@csrf_exempt
 def key(request,api_key):
     #your api key
     apikey=api_key
     return render(request,"chars.html",build(request,apikey))   
+
 def putCharacters(apikey):
     responseJson=listCharacters("",apikey)
-    print("=MongoDB-Putting-into-Accounts-Context")
+    # print("=MongoDB-Putting-into-Accounts-Context")
     accounts_collection=server['accounts']
     accounts_collection.insert_one({'_id':apikey,'characters':responseJson})
     return responseJson
 def putCharacterEquipment(charName,apikey):
     responseJson=listCharacters(charName,apikey)
-    print("=MongoDB-Putting-Into-Characters-Context")
+    # print("=MongoDB-Putting-Into-Characters-Context")
     characters_collection=server['characters']
     characters_collection.insert_one(Merge({'_id':charName},responseJson))
     return responseJson
 def putItems(id,apikey):
     responseJson=getItem(id,apikey)
-    print("=MongoDB-Putting-Into-Items-Context")
+    # print("=MongoDB-Putting-Into-Items-Context")
     characters_collection=server['items']
     characters_collection.insert_one(Merge({'_id':id},responseJson))
     return responseJson
 def exists(collection,id):
-    print(f"=MongoDB-Pulling-From-[Item: {id}]-From-[Conext: {collection}]")
+    # print(f"=MongoDB-Pulling-From-[Item: {id}]-From-[Conext: {collection}]")
     collection_item=server[collection]
     result=collection_item.find({'_id':id})
     if result.count()==0:

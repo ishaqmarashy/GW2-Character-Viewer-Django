@@ -1,12 +1,18 @@
-import json
 from django.shortcuts import redirect, render
 import requests
 from requests import api
 from . import mongodb
 from django import forms
 from django.views.decorators.csrf import csrf_exempt
+import logging
+
+import threading
+
+import time
 #   DC96889C-7090-A445-9806-FBA2D0C8508BC622FA93-8506-41C2-9F56-8FCCC11F35DB 
 #   215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B 
+#	551A0BBB-00CF-424F-BFD7-2492760F5933C6974D7A-9F7E-49E6-87EF-8FB7611863D4
+
 #just past your own api key into the url after localhost/myapp to start building your mongodb database... it takes a while...
 apikey='215E7ED2-8B7D-2842-A5B0-B6F438ECB5998AB6FBC2-59BA-41CC-B54C-B96011624A9B'
 server=mongodb.get_database()
@@ -17,10 +23,10 @@ class api_keyForm(forms.Form):
 def Merge(dict1, dict2):
     res = {**dict1, **dict2}
     return res
-def api(arg,apikey):
+async def  api(arg,apikey):
     #   My Own API Key you may use yours if you'd like
     url=f'https://api.guildwars2.com/v2/{arg}'
-    response=requests.get(url,data={'access_token':apikey})
+    response=await requests.get(url,data={'access_token':apikey})
     print(f"Requesting Data-from-{url}->")
     if(type(response.json())==dict and response.json()['text']=='Invalid access token'):
         return render(response)
@@ -42,6 +48,7 @@ def listEquipment(arg,apikey):
 def build(request, apikey):
     equipmentList={}
     context={}
+    thd={}
     characterlist=existsCharacter(apikey)
     for character in characterlist:
         equipmentList[character]=(existsEquipment(character,apikey))
